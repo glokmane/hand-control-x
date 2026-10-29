@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# MediaPipe models — downloaded automatically on first run (see ensure_model in hand_control.py)
+*.task
+
+# Local user state
+hand_settings.json
+darts_best.json
+WIN/hand_control/hand_settings.json
+WIN/hand_control/darts_best.json
+
+# Vosk model is stored in %LOCALAPPDATA%\vosk, but ignore a copy if one appears
+vosk-model-*/
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local logs and recordings
+*.log
+*.mp4
+*.avi
+
+# Secrets — never commit these
+.env
+.env.*
+*.pem
+*.key
