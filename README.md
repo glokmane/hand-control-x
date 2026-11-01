@@ -93,7 +93,26 @@ All commands are run from `WIN\hand_control`.
 Keep the remaining fingers raised during a pinch (like an OK sign) so the pinch is not
 mistaken for a fist.
 
-**Camera window keys:** `P` — pause · `L` — pick the hand again · `Q` / `Esc` — quit.
+### Two-hand gestures
+
+Your second hand is recognised automatically: the opposite side, a similar palm size and
+close to your main hand. A hand of another person further from the camera is ignored.
+While both hands are in view, the one-hand cursor is paused.
+
+| Gesture | Action |
+|---|---|
+| Both hands OK-pinch, then move them apart / together | Zoom in / out (Ctrl + wheel): browser, maps, images, documents |
+| Two fists ("grab the window") | The window under the cursor moves with your hands |
+| Quick swipe of both open palms left / right | Next / previous virtual desktop |
+
+### Calibration
+
+On the first launch the app asks you to show an open palm, a fist and a pinch, then tunes the
+gesture thresholds (pinch, finger bend, dead zone) to your hand and camera. Run it again with
+`K` or by saying `калибровка`. If the steps look alike (e.g. no pinch was made), the previous
+thresholds are kept.
+
+**Camera window keys:** `P` — pause · `L` — pick the hand again · `K` — calibrate · `Q` / `Esc` — quit.
 
 ## Voice commands
 
@@ -132,7 +151,7 @@ Say **"команды"** ("commands") to see the full list on screen. A short ov
 
 ### Gestures and voice together
 
-`сменить руку`, `выключи жесты` / `включи жесты`, `изменить ди-пи-ай` + a number from
+`сменить руку`, `калибровка`, `выключи жесты` / `включи жесты`, `изменить ди-пи-ай` + a number from
 400 to 2500 (e.g. `изменить ди-пи-ай тысяча`).
 
 ### Yandex Music
