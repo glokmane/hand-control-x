@@ -39,3 +39,6 @@ desktop.ini
 .env.*
 *.pem
 *.key
+
+# Экспериментальная клавиатура в воздухе - локальный модуль, в репозиторий не входит
+WIN/hand_control/air_keyboard.py
