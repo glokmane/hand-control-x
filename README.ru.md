@@ -10,8 +10,8 @@ Hand Control X превращает обычную камеру в мышь, п�
 <p>
   <img alt="Python" src="https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white">
   <img alt="Windows" src="https://img.shields.io/badge/platform-Windows-0078D4?logo=windows&logoColor=white">
-  <img alt="macOS planned" src="https://img.shields.io/badge/platform-macOS_planned-lightgrey?logo=apple&logoColor=white">
-  <img alt="Arch Linux planned" src="https://img.shields.io/badge/platform-Arch_Linux_planned-lightgrey?logo=archlinux&logoColor=white">
+  <img alt="macOS in development" src="https://img.shields.io/badge/platform-macOS_in_development-lightgrey?logo=apple&logoColor=white">
+  <img alt="Arch Linux in development" src="https://img.shields.io/badge/platform-Arch_Linux_in_development-lightgrey?logo=archlinux&logoColor=white">
   <img alt="License" src="https://img.shields.io/badge/license-proprietary-red">
 </p>
 
@@ -47,7 +47,7 @@ Hand Control X превращает обычную камеру в мышь, п�
 
 | | |
 |---|---|
-| ОС | Windows 10/11 (основная), macOS и Arch Linux — в планах |
+| ОС | Windows 10/11 (основная), macOS и Arch Linux — в разработке |
 | Python | 3.10 – 3.14 |
 | Железо | любая веб-камера, любой микрофон |
 | Интернет | только при первом запуске (модели скачиваются один раз) |
@@ -175,8 +175,8 @@ hand-control-x/
 │       ├── jedi_duel.py        # дуэль джедаев
 │       ├── emotion_67.py       # эмоции по лицу + мем «67»
 │       └── requirements.txt
-├── MAC/                        # порт под macOS (в планах)
-├── ARCHLINUX/                  # порт под Arch Linux (в планах)
+├── MAC/                        # порт под macOS (в разработке)
+├── ARCHLINUX/                  # порт под Arch Linux (в разработке)
 ├── CONTRIBUTING.md
 ├── CLA.md
 └── LICENSE
@@ -185,8 +185,8 @@ hand-control-x/
 ## Планы
 
 - [x] Windows: жесты, голос, игры
-- [ ] Порт macOS — захват камеры и разрешения Accessibility
-- [ ] Порт Arch Linux — ввод X11/Wayland, громкость через PipeWire
+- [ ] Порт macOS — в разработке: захват камеры и разрешения Accessibility
+- [ ] Порт Arch Linux — в разработке: ввод X11/Wayland, громкость через PipeWire
 - [ ] Интерфейс настроек вместо JSON-файлов
 - [ ] Английские голосовые команды (модель Vosk EN)
 - [ ] Установщик / сборка в один файл

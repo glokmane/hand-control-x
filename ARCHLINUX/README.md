@@ -1,6 +1,6 @@
 # Arch Linux port — in development
 
-This folder is reserved for the Arch Linux version of Hand Control X. Nothing is implemented yet.
+This folder is reserved for the Arch Linux version of Hand Control X. No code has landed yet — the port is in development.
 
 ## Plan
 
@@ -24,7 +24,7 @@ pip install -r ARCHLINUX/hand_control/requirements.txt
 
 `mediapipe` wheels exist for `x86_64`; on other architectures you may need a container.
 
-## Preview (no plan yet)
+## Expected layout
 
 ```
 ARCHLINUX/

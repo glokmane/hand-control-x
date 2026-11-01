@@ -1,6 +1,6 @@
 # macOS port — in development
 
-This folder is reserved for the macOS version of Hand Control X. Nothing is implemented yet.
+This folder is reserved for the macOS version of Hand Control X. No code has landed yet — the port is in development.
 
 ## Plan
 

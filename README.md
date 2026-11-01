@@ -9,12 +9,12 @@ or change the volume by talking, and play hand-driven mini-games on top of it.
 <p>
   <img alt="Python" src="https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white">
   <img alt="Windows" src="https://img.shields.io/badge/platform-Windows-0078D4?logo=windows&logoColor=white">
-  <img alt="macOS planned" src="https://img.shields.io/badge/platform-macOS_planned-lightgrey?logo=apple&logoColor=white">
-  <img alt="Arch Linux planned" src="https://img.shields.io/badge/platform-Arch_Linux_planned-lightgrey?logo=archlinux&logoColor=white">
+  <img alt="macOS in development" src="https://img.shields.io/badge/platform-macOS_in_development-lightgrey?logo=apple&logoColor=white">
+  <img alt="Arch Linux in development" src="https://img.shields.io/badge/platform-Arch_Linux_in_development-lightgrey?logo=archlinux&logoColor=white">
   <img alt="License" src="https://img.shields.io/badge/license-proprietary-red">
 </p>
 
-> **Status:** Windows is the working platform. macOS and Arch Linux ports are in progress
+> **Status:** Windows is the working platform. macOS and Arch Linux ports are in development
 > (see [`MAC/`](MAC) and [`ARCHLINUX/`](ARCHLINUX)).
 
 [🇷🇺 Русская версия](README.ru.md)
@@ -46,7 +46,7 @@ or change the volume by talking, and play hand-driven mini-games on top of it.
 
 | | |
 |---|---|
-| OS | Windows 10/11 (primary), macOS and Arch Linux — planned |
+| OS | Windows 10/11 (primary), macOS and Arch Linux — in development |
 | Python | 3.10 – 3.14 |
 | Hardware | any webcam, any microphone |
 | Internet | only on the first launch (models are downloaded once) |
@@ -173,8 +173,8 @@ hand-control-x/
 │       ├── jedi_duel.py        # first-person Jedi duel
 │       ├── emotion_67.py       # face emotions + "67" meme
 │       └── requirements.txt
-├── MAC/                        # macOS port (planned)
-├── ARCHLINUX/                  # Arch Linux port (planned)
+├── MAC/                        # macOS port (in development)
+├── ARCHLINUX/                  # Arch Linux port (in development)
 ├── CONTRIBUTING.md
 ├── CLA.md
 └── LICENSE
@@ -183,8 +183,8 @@ hand-control-x/
 ## Roadmap
 
 - [x] Windows: gestures, voice, games
-- [ ] macOS port — camera capture and accessibility permissions
-- [ ] Arch Linux port — X11/Wayland input, PipeWire volume control
+- [ ] macOS port — in development: camera capture and accessibility permissions
+- [ ] Arch Linux port — in development: X11/Wayland input, PipeWire volume control
 - [ ] Settings UI instead of JSON files
 - [ ] English voice commands (Vosk EN model)
 - [ ] Installer / single-file build
