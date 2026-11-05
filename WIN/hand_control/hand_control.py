@@ -510,8 +510,22 @@ def draw(frame, hands, mine, gesture, ctrl):
     if len(hands) > 1:
         info += f"   other hands: {len(hands) - (mine is not None)}"
     cv2.putText(frame, info, (w - 10 - 9 * len(info), 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-    cv2.putText(frame, "P: pause   L: re-pick hand   Q/Esc: quit", (10, h - 15),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1)
+    cv2.putText(frame, "P: pause   L: re-pick   C: chat with AI   Q/Esc: quit", (10, h - 15),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+
+def prompt_ai_chat(executor):
+    """Открывает окно ввода сообщения для общения с AI (текст или команда)."""
+    try:
+        import pyautogui
+        query = pyautogui.prompt(
+            text="Задайте вопрос или команду для AI:",
+            title="Hand Control X — Чат с AI"
+        )
+        if query and query.strip():
+            executor.handle(query.strip())
+    except Exception as e:
+        print("Ошибка чата:", e)
 
 
 def main():
@@ -573,6 +587,8 @@ def main():
                 ctrl.release()
             if key == ord("l"):
                 ctrl.relock()
+            if key == ord("c"):
+                threading.Thread(target=prompt_ai_chat, args=(executor,), daemon=True).start()
 
     voice.running = executor.running = camera.running = False
     ctrl.release()

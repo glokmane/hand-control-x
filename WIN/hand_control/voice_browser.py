@@ -145,6 +145,7 @@ class VoiceListener(threading.Thread):
         self.ignore_until = 0.0      # пока компьютер говорит сам, фразы с микрофона не принимаем
         self.status = "loading"
         self.running = True
+        self.ai_busy = threading.Lock()
 
     def run(self):
         try:  # голос - необязательная часть: без vosk или микрофона жесты продолжают работать
@@ -668,6 +669,10 @@ class VoiceExecutor(threading.Thread):
         self.music = YandexMusic()
         self.pending_confirm = None        # (действие, до какого времени ждать "да") - для опасных команд
         self._voice = None                 # синтезатор речи Windows для ответов вслух
+        self.ai_busy = getattr(listener, "ai_busy", threading.Lock())
+        self.ai_start_time = 0.0
+        self.ai_prompt = ""
+        self.ai_last_response = ""
         self.running = True
 
     def run(self):
@@ -685,9 +690,59 @@ class VoiceExecutor(threading.Thread):
         self.feedback = (text, time.time() + secs, ok)
         print(("  -> " if ok else "  ?? ") + text)
 
+    @staticmethod
+    def _clean_for_speech(text):
+        """Очищает текст от markdown, ссылок и спецсимволов перед озвучкой."""
+        t = re.sub(r"```.*?```", "код скрыт", text, flags=re.DOTALL)
+        t = re.sub(r"`.*?`", "", t)
+        t = re.sub(r"\*\*([^*]+)\*\*", r"\1", t)
+        t = re.sub(r"\*([^*]+)\*", r"\1", t)
+        t = re.sub(r"#{1,6}\s*", "", t)
+        t = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", t)
+        t = re.sub(r"https?://\S+", "", t)
+        t = re.sub(r"[*_~><#]", "", t)
+        return re.sub(r"\s+", " ", t).strip()
+
     def speak(self, text):
-        """Ответ вслух голосом Windows (русский, если установлен). Свой голос микрофон не слушает."""
+        """Ответ вслух: edge-tts (если установлен) или встроенный SAPI Windows (Irina). Свой голос микрофон не слушает."""
         listener = self.listener
+        spoken_text = self._clean_for_speech(text)
+        if not spoken_text:
+            return
+
+        # 1. Если установлен edge-tts — используем качественный нейросетевой голос
+        try:
+            import asyncio
+            import edge_tts
+            import tempfile
+            import pygame
+
+            async def _synth(content, path):
+                communicate = edge_tts.Communicate(content, "ru-RU-SvetlanaNeural")
+                await communicate.save(path)
+
+            with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as f:
+                tmp_mp3 = f.name
+            try:
+                if hasattr(listener, "ignore_until"):
+                    listener.ignore_until = time.time() + 30
+                asyncio.run(_synth(spoken_text, tmp_mp3))
+                if not pygame.mixer.get_init():
+                    pygame.mixer.init()
+                pygame.mixer.music.load(tmp_mp3)
+                pygame.mixer.music.play()
+                while pygame.mixer.music.get_busy():
+                    time.sleep(0.05)
+                return
+            finally:
+                try:
+                    os.remove(tmp_mp3)
+                except OSError:
+                    pass
+        except Exception:
+            pass  # Переход к стандартному SAPI
+
+        # 2. Стандартный SAPI Windows (Microsoft Irina)
         try:
             import comtypes
             import comtypes.client
@@ -701,7 +756,7 @@ class VoiceExecutor(threading.Thread):
                         break
             if hasattr(listener, "ignore_until"):
                 listener.ignore_until = time.time() + 30
-            self._voice.Speak(text)
+            self._voice.Speak(spoken_text)
         except Exception as e:
             print("  (не получилось сказать вслух:", e, ")")
         finally:
@@ -743,7 +798,15 @@ class VoiceExecutor(threading.Thread):
             return self.take_dpi(t)
         self.await_dpi_until = 0.0             # сказали другую команду - число больше не ждём
         if cmd is None:
-            return self.say(f"не команда: «{t}»", False)
+            # Неизвестные локальному парсеру фразы передаём AI в отдельном потоке:
+            # сетевой запрос не блокирует распознавание голоса и работу камеры.
+            if not self.ai_busy.acquire(blocking=False):
+                return self.say("AI уже выполняет предыдущую задачу", False)
+            self.ai_start_time = time.time()
+            self.ai_prompt = t
+            self.say("AI обрабатывает запрос…", True, 8)
+            threading.Thread(target=self._handle_ai, args=(t,), daemon=True).start()
+            return
         desc, target, act, arg = cmd
         if target == "browser" and not focus_browser():
             if act in DIRECT_URL:                  # поиск и сайты откроем прямой ссылкой - сработает всегда
@@ -755,6 +818,55 @@ class VoiceExecutor(threading.Thread):
         elif target == "text" and any(w in active_title() for w in OWN_WINDOWS):
             focus_browser()                        # из окна камеры печатать некуда - уйдём в браузер
         self.report(act(arg, self), desc)
+
+    @staticmethod
+    def _clean_ai_prompt(text):
+        t = text.strip()
+        prefixes = (
+            "эй ии", "ии", "эй ассистент", "ассистент", "нейросеть", "чат гпт",
+            "чат", "помощник", "компьютер", "спроси у ии", "спроси у нейросети",
+            "спроси", "скажи"
+        )
+        for p in prefixes:
+            if t.lower().startswith(p + " "):
+                t = t[len(p):].strip(" ,:?!")
+                break
+        return t or text
+
+    def _handle_ai(self, text):
+        try:
+            from ai_assistant import AIAssistant
+            if not hasattr(self, "_ai_assistant"):
+                self._ai_assistant = AIAssistant(
+                    feedback=self.say,
+                    speak=self.speak,
+                    executor=self
+                )
+            clean_text = self._clean_ai_prompt(text)
+            answer = self._ai_assistant.ask(clean_text)
+            clean_ans = answer.strip()
+            self.ai_last_response = clean_ans
+            self.say(f"AI: {clean_ans}", True, 15)
+            print(f"\n[AI]: {clean_ans}\n")
+            # Голосовой ответ включён по умолчанию: можно отключить в ai_settings.json.
+            try:
+                from ai_assistant import _load_settings
+                if _load_settings().get("speak_responses", True):
+                    self.speak(clean_ans)
+            except Exception:
+                pass
+        except Exception as exc:
+            msg = f"AI ошибка: {exc}"
+            self.say(msg, False, 10)
+            print(f"\n[{msg}]\n")
+            try:
+                from ai_assistant import _load_settings
+                if _load_settings().get("speak_responses", True):
+                    self.speak(msg)
+            except Exception:
+                pass
+        finally:
+            self.ai_busy.release()
 
     def take_dpi(self, t):
         """Ответ на "назовите DPI": число от DPI_MIN до DPI_MAX."""
@@ -798,6 +910,26 @@ _fonts = {}
 _overlay = {}
 
 
+def _wrap_text(text, max_chars=46):
+    lines = []
+    for raw_line in str(text).split("\n"):
+        raw_line = raw_line.strip()
+        if not raw_line:
+            continue
+        words = raw_line.split()
+        cur, cur_len = [], 0
+        for w in words:
+            if cur_len + len(w) + (1 if cur else 0) > max_chars:
+                lines.append(" ".join(cur))
+                cur, cur_len = [w], len(w)
+            else:
+                cur.append(w)
+                cur_len += len(w) + (1 if len(cur) > 1 else 0)
+        if cur:
+            lines.append(" ".join(cur))
+    return lines or [str(text)]
+
+
 def _font(size):
     if size not in _fonts:
         from PIL import ImageFont
@@ -832,9 +964,26 @@ def draw_voice_overlay(frame, listener, executor):
                           17, (255, 210, 120)))
     if listener.partial:
         lines.append((f"Слышу: {listener.partial}", 20, (220, 220, 220)))
+
+    # Индикатор работы AI
+    if getattr(executor, "ai_busy", None) and executor.ai_busy.locked():
+        elapsed = int(now - getattr(executor, "ai_start_time", now))
+        dots = "." * ((int(now * 2) % 3) + 1)
+        prompt_txt = getattr(executor, "ai_prompt", "")
+        if prompt_txt:
+            lines.append((f"AI думает{dots} ({elapsed}с): {prompt_txt[:35]}", 19, (255, 215, 0)))
+        else:
+            lines.append((f"AI думает{dots} ({elapsed}с)", 19, (255, 215, 0)))
+
     text, until, ok = executor.feedback
-    if now < until:
-        lines.append((text, 22, (120, 255, 120) if ok else (255, 150, 90)))
+    if now < until and text:
+        wrapped = _wrap_text(text, 46)
+        color = (120, 255, 120) if ok else (255, 150, 90)
+        for wline in wrapped[:5]:
+            lines.append((wline, 19, color))
+        if len(wrapped) > 5:
+            lines.append(("...", 16, color))
+
     if now < executor.help_until:
         lines += [(line, 15, (255, 255, 255)) for line in HELP_LINES]
     # текст с обводкой рисуется медленно, поэтому перерисовываем его только когда он изменился,

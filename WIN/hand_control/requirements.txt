@@ -11,3 +11,6 @@ winrt-Windows.Foundation.Collections
 winrt-Windows.Media.Control
 winrt-Windows.Storage.Streams
 pycaw
+pygetwindow
+pyperclip
+comtypes
